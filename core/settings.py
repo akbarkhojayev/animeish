@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-nufk-6wtk^_!kaq26h&d$!%)7-xf)#@8rczi1=z))#7tn)b*lr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -38,9 +38,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
+    'main',
     'rest_framework_simplejwt',
+    'rest_framework.authtoken',
     'drf_yasg',
     'corsheaders',
 ]
@@ -52,6 +63,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -76,6 +88,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 CORS_ALLOW_ALL_ORIGINS = True
+SITE_ID = 1
+
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -83,6 +98,12 @@ REST_FRAMEWORK = {
     )
 
 }
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
 
 
 SWAGGER_SETTINGS = {
@@ -132,31 +153,47 @@ from datetime import timedelta
 
 SIMPLE_JWT = {
    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
-   "REFRESH_TOKEN_LIFETIME": timedelta(days=180)
+   "REFRESH_TOKEN_LIFETIME": timedelta(days=180),
+   "ROTATE_REFRESH_TOKENS": True,
+   "BLACKLIST_AFTER_ROTATION": True,
 }
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": "1028453314689-t5o1lj54gd28g1c2sqah30du0udmscrq.apps.googleusercontent.com",
+            "secret": "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",
+            "key": ""
+        }
+    }
+}
+
 
 UNFOLD = {
     "DASHBOARD_CALLBACK": "main.views.dashboard_callback",
 
 }
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Asia/Tashkent'  # siz uchun mosroq
 USE_I18N = True
-
 USE_TZ = True
+
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+if DEBUG:
+    STATICFILES_DIRS = [BASE_DIR / 'static']
+else:
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -164,5 +201,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'akbarkhojayev@gmail.com'
+EMAIL_HOST_PASSWORD = 'xserfcdvmmvblzuu'
+DEFAULT_FROM_EMAIL = 'Aniki  <akbarkhojayev@gmail.com>'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 AUTH_USER_MODEL = 'main.User'

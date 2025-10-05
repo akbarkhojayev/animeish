@@ -1,21 +1,33 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from main.models import *
 from main.serializers import *
+from main.models import User as CustomUser, Movie, Review, Bookmark
+from django.db.models import Avg
+from django.utils.timezone import now
+from datetime import timedelta
+import json, random
+from rest_framework.response import Response
+from django.core.mail import send_mail
+from rest_framework.generics import GenericAPIView
+from django.contrib.auth.hashers import make_password, check_password
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = RegisterSerializer
+    serializer_class = CustomRegisterSerializer
     permission_classes = [AllowAny]
-
 
 class UserUpdateView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
 
 class GenreListView(generics.ListAPIView):
     queryset = Genre.objects.all()
@@ -61,6 +73,11 @@ class ReviewListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class BannerListView(generics.ListAPIView):
+    queryset = Banner.objects.all()
+    serializer_class = BannerSerializer
+    permission_classes = [IsAuthenticated]
+
 class BookmarkListCreateView(generics.ListCreateAPIView):
     queryset = Bookmark.objects.all()
     serializer_class = BookmarkSerializer
@@ -68,13 +85,6 @@ class BookmarkListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-
-from main.models import User as CustomUser, Movie, Review, Bookmark
-from django.db.models import Avg
-from django.utils.timezone import now
-from datetime import timedelta
-import json
 
 def dashboard_callback(request, context):
     total_users = CustomUser.objects.count()
@@ -116,7 +126,62 @@ def dashboard_callback(request, context):
     })
     return context
 
+OTP_STORE = {}
 
 
+class SendOTPView(GenericAPIView):
+    serializer_class = SendOTPSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        code = random.randint(100000, 999999)
+        OTP_STORE[email] = code
+
+        send_mail(
+            subject='Kirish kodi',
+            message=f'Sizning kirish kodingiz: {code}',
+            from_email='noreply@moviesite.com',
+            recipient_list=[email],
+        )
+
+        return Response({'message': 'Tasdiqlash kodi emailga yuborildi!'}, status=status.HTTP_200_OK)
 
 
+class VerifyOTPView(GenericAPIView):
+    serializer_class = VerifyOTPSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        code = serializer.validated_data['code']
+        password = serializer.validated_data['password']
+
+        if OTP_STORE.get(email) != code:
+            return Response({'error': 'Noto‘g‘ri yoki eskirgan kod'}, status=status.HTTP_400_BAD_REQUEST)
+
+        OTP_STORE.pop(email, None)
+
+        user = User.objects.filter(email=email).first()
+
+        if not user:
+            user = User.objects.create(
+                email=email,
+                username=email,
+                password=make_password(password),
+            )
+        else:
+            if not check_password(password, user.password):
+                return Response({'error': 'Parol noto‘g‘ri'}, status=status.HTTP_400_BAD_REQUEST)
+
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'message': 'Kirish muvaffaqiyatli!',
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_200_OK)

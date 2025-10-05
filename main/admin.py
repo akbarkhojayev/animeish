@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.forms import UserChangeForm, UserCreationForm, AdminPasswordChangeForm
-from .models import User as CustomUser, Genre, Movie, VideoSource, Rating, Review, Bookmark, Episode
+from .models import User as CustomUser, Genre, Movie, VideoSource, Rating, Review, Bookmark, Episode, Banner
 
 admin.site.unregister(Group)
 
@@ -15,20 +15,20 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Shaxsiy ma’lumotlar', {'fields': ('first_name', 'last_name', 'email', 'avatar', 'bio', 'is_premium')}),
+        ('Shaxsiy ma’lumotlar', {'fields': ('first_name', 'email', 'is_premium')}),
         ('Faollik', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
-        ('Muhim sanalar', {'fields': ('last_login', 'date_joined')}),
+        ('Muhim sanalar', {'fields': ('last_login',)}),
     )
 
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2', 'avatar', 'bio', 'is_premium', 'is_staff',
+            'fields': ('username', 'email', 'password1', 'password2', 'is_premium', 'is_staff',
                        'is_superuser'),
         }),
     )
 
-    list_display = ("username", "email", "is_premium", "is_staff", "date_joined")
+    list_display = ("username", "email", "is_premium", "is_staff")
     list_filter = ("is_premium", "is_staff", "is_superuser")
     search_fields = ("username", "email")
 
@@ -84,8 +84,8 @@ class MovieAdmin(ModelAdmin):
 
 @admin.register(VideoSource)
 class VideoSourceAdmin(ModelAdmin):
-    list_display = ("movie", "quality", "is_trailer", "url")
-    list_filter = ("quality", "is_trailer")
+    list_display = ("movie", "quality", "url")
+    list_filter = ("quality",)
     search_fields = ("movie__title",)
 
 @admin.register(Rating)
@@ -109,3 +109,8 @@ class BookmarkAdmin(ModelAdmin):
     list_display = ("user", "movie", "created_at")
     search_fields = ("user__username", "movie__title")
     list_filter = ("created_at",)
+
+@admin.register(Banner)
+class BannerAdmin(ModelAdmin):
+    list_display = ("movie__title",)
+

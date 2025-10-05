@@ -3,8 +3,7 @@ from django.db import models
 from django.utils.text import slugify
 
 class User(AbstractUser):
-    avatar = models.ImageField(blank=True, null=True)
-    bio = models.TextField(blank=True, null=True)
+    first_name = models.CharField()
     is_premium = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -54,6 +53,13 @@ class Movie(models.Model):
     def __str__(self):
         return self.title
 
+class Banner(models.Model):
+    photo = models.ImageField(upload_to='banners/', blank=True, null=True)
+    movie = models.ForeignKey(Movie, related_name='banners', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.movie.title
+
 class Episode(models.Model):
     movie = models.ForeignKey(
         Movie,
@@ -79,7 +85,6 @@ class VideoSource(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='videos')
     url = models.URLField()
     quality = models.CharField(max_length=50, blank=True)
-    is_trailer = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.movie.title} - {self.quality}"
