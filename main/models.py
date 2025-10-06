@@ -92,17 +92,13 @@ class VideoSource(models.Model):
 class Rating(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='ratings')
-    score = models.PositiveSmallIntegerField()  # 1..5
+    score = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'movie')
 
-class Review(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='reviews')
-    body = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
 
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
@@ -111,3 +107,10 @@ class Bookmark(models.Model):
 
     class Meta:
         unique_together = ('user', 'movie')
+
+class UserEpisodeProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="episode_progress")
+    episode = models.ForeignKey(Episode, on_delete=models.CASCADE)
+    watched_minutes = models.PositiveIntegerField(default=0)
+    class Meta:
+        unique_together = ("user", "episode")

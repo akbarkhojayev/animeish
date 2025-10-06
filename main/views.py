@@ -1,33 +1,38 @@
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework.generics import GenericAPIView
 from main.models import *
 from main.serializers import *
-from main.models import User as CustomUser, Movie, Review, Bookmark
+from main.models import User as CustomUser, Movie, Bookmark
 from django.db.models import Avg
 from django.utils.timezone import now
 from datetime import timedelta
-import json, random
-from rest_framework.response import Response
 from django.core.mail import send_mail
-from rest_framework.generics import GenericAPIView
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework_simplejwt.tokens import RefreshToken
+import json, random
 
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = CustomRegisterSerializer
     permission_classes = [AllowAny]
 
-class UserUpdateView(generics.RetrieveUpdateAPIView):
+class UserUpdateView(generics.UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user
-
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
+
+class UserRetrieveView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
 
 class GenreListView(generics.ListAPIView):
     queryset = Genre.objects.all()
@@ -58,20 +63,28 @@ class EpisodeListView(generics.ListAPIView):
         return Episode.objects.filter(movie_id=movie_id)
 
 class RatingListCreateView(generics.ListCreateAPIView):
-    queryset = Rating.objects.all()
     serializer_class = RatingSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return Rating.objects.filter(user=self.request.user)
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-class ReviewListCreateView(generics.ListCreateAPIView):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
+class RatingUpdateView(generics.UpdateAPIView):
+    serializer_class = RatingSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get_queryset(self):
+        return Rating.objects.filter(user=self.request.user)
+
+class RatingDeleteView(generics.DestroyAPIView):
+    serializer_class = RatingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Rating.objects.filter(user=self.request.user)
 
 class BannerListView(generics.ListAPIView):
     queryset = Banner.objects.all()
@@ -83,15 +96,18 @@ class BookmarkListCreateView(generics.ListCreateAPIView):
     serializer_class = BookmarkSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return Bookmark.objects.filter(user=self.request.user)
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
 
 def dashboard_callback(request, context):
     total_users = CustomUser.objects.count()
     premium_users = CustomUser.objects.filter(is_premium=True).count()
     active_users = CustomUser.objects.filter(is_active=True).count()
     total_movies = Movie.objects.count()
-    total_reviews = Review.objects.count()
     total_bookmarks = Bookmark.objects.count()
 
     top_movies_qs = (
@@ -118,7 +134,6 @@ def dashboard_callback(request, context):
             "premium_users": premium_users,
             "active_users": active_users,
             "total_movies": total_movies,
-            "total_reviews": total_reviews,
             "total_bookmarks": total_bookmarks,
         },
         "top_movies": top_movies,
@@ -126,43 +141,47 @@ def dashboard_callback(request, context):
     })
     return context
 
+
 OTP_STORE = {}
 
 
 class SendOTPView(GenericAPIView):
     serializer_class = SendOTPSerializer
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
+        email = serializer.validated_data["email"]
         code = random.randint(100000, 999999)
         OTP_STORE[email] = code
 
         send_mail(
-            subject='Kirish kodi',
-            message=f'Sizning kirish kodingiz: {code}',
-            from_email='noreply@moviesite.com',
+            subject="Kirish kodi",
+            message=f"Sizning kirish kodingiz: {code}",
+            from_email="noreply@moviesite.com",
             recipient_list=[email],
         )
 
-        return Response({'message': 'Tasdiqlash kodi emailga yuborildi!'}, status=status.HTTP_200_OK)
+        return Response({"message": "Tasdiqlash kodi emailga yuborildi!"}, status=status.HTTP_200_OK)
 
 
 class VerifyOTPView(GenericAPIView):
     serializer_class = VerifyOTPSerializer
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
-        code = serializer.validated_data['code']
-        password = serializer.validated_data['password']
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"]
+        first_name = serializer.validated_data["first_name"]
+        password = serializer.validated_data["password"]
 
         if OTP_STORE.get(email) != code:
-            return Response({'error': 'Noto‘g‘ri yoki eskirgan kod'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Noto‘g‘ri yoki eskirgan kod"}, status=status.HTTP_400_BAD_REQUEST)
 
         OTP_STORE.pop(email, None)
 
@@ -172,16 +191,89 @@ class VerifyOTPView(GenericAPIView):
             user = User.objects.create(
                 email=email,
                 username=email,
+                first_name=first_name,
                 password=make_password(password),
             )
         else:
+            # Mavjud foydalanuvchining parolini tekshiramiz
             if not check_password(password, user.password):
-                return Response({'error': 'Parol noto‘g‘ri'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Parol noto‘g‘ri"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Token generatsiya
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            "message": "Kirish muvaffaqiyatli!",
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "first_name": user.first_name,
+            },
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }, status=status.HTTP_200_OK)
+
+
+class RequestPasswordResetView(GenericAPIView):
+    """
+    Email orqali parolni tiklash kodi yuborish
+    """
+    permission_classes = [AllowAny]
+    serializer_class = RequestPasswordResetSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        user = User.objects.filter(email=email).first()
+
+        if not user:
+            return Response({"error": "Bu email ro‘yxatdan o‘tmagan."}, status=status.HTTP_404_NOT_FOUND)
+
+        code = random.randint(100000, 999999)
+        OTP_STORE[email] = code
+
+        send_mail(
+            subject="Parolni tiklash kodi",
+            message=f"Sizning parolni tiklash kodingiz: {code}",
+            from_email="noreply@moviesite.com",
+            recipient_list=[email],
+        )
+
+        return Response({"message": "Parolni tiklash kodi emailga yuborildi!"}, status=status.HTTP_200_OK)
+
+
+class ConfirmPasswordResetView(GenericAPIView):
+    """
+    Kodni tasdiqlab yangi parolni o‘rnatish + token qaytarish
+    """
+    permission_classes = [AllowAny]
+    serializer_class = ConfirmPasswordResetSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"]
+        new_password = serializer.validated_data["new_password"]
+
+        if email not in OTP_STORE or str(OTP_STORE[email]) != str(code):
+            return Response({"error": "Kod noto‘g‘ri yoki eskirgan."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({"error": "Foydalanuvchi topilmadi."}, status=status.HTTP_404_NOT_FOUND)
+
+        user.password = make_password(new_password)
+        user.save()
+        OTP_STORE.pop(email, None)
 
         refresh = RefreshToken.for_user(user)
 
         return Response({
-            'message': 'Kirish muvaffaqiyatli!',
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
+            "message": "Parol muvaffaqiyatli tiklandi!",
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
         }, status=status.HTTP_200_OK)

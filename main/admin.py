@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.forms import UserChangeForm, UserCreationForm, AdminPasswordChangeForm
-from .models import User as CustomUser, Genre, Movie, VideoSource, Rating, Review, Bookmark, Episode, Banner
+from .models import User as CustomUser, Genre, Movie, VideoSource, Rating, Bookmark, Episode, Banner
 
 admin.site.unregister(Group)
 
@@ -90,19 +90,10 @@ class VideoSourceAdmin(ModelAdmin):
 
 @admin.register(Rating)
 class RatingAdmin(ModelAdmin):
-    list_display = ("user", "movie", "score", "created_at")
+    list_display = ("user", "movie", "score",'comment', "created_at")
     list_filter = ("score", "created_at")
     search_fields = ("user__username", "movie__title")
 
-@admin.register(Review)
-class ReviewAdmin(ModelAdmin):
-    list_display = ("user", "movie", "short_body", "created_at")
-    search_fields = ("user__username", "movie__title", "body")
-    list_filter = ("created_at",)
-
-    def short_body(self, obj):
-        return obj.body[:50] + ("..." if len(obj.body) > 50 else "")
-    short_body.short_description = "Sharh"
 
 @admin.register(Bookmark)
 class BookmarkAdmin(ModelAdmin):

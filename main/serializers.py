@@ -1,12 +1,31 @@
 from rest_framework import serializers
-from main.models import User, Genre, Movie, Episode, VideoSource, Rating, Review, Bookmark, Banner
+from main.models import User, Genre, Movie, Episode, VideoSource, Rating, Bookmark, Banner
+from django.db import models
 
+class UserProgressSerializer(serializers.ModelSerializer):
+    watched_episodes_count = serializers.SerializerMethodField()
+    total_watched_hours = serializers.SerializerMethodField()
 
-class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "first_name", "username", "is_premium", "created_at")
-        read_only_fields = ("id", "is_premium", "created_at")
+        fields = ["watched_episodes_count", "total_watched_hours"]
+
+    def get_watched_episodes_count(self, obj):
+        return obj.episode_progress.count()
+
+    def get_total_watched_hours(self, obj):
+        total_minutes = obj.episode_progress.aggregate(
+            total=models.Sum("watched_minutes")
+        )["total"] or 0
+        return round(total_minutes / 60, 2)
+
+class UserSerializer(serializers.ModelSerializer):
+    progress = UserProgressSerializer(source="*", read_only=True)
+
+    class Meta:
+        model = User
+        fields = ("id", "first_name", "username", "email", "is_premium", "created_at", "progress")
+        read_only_fields = ("id", "is_premium", "created_at", "progress")
 
 
 class CustomRegisterSerializer(serializers.ModelSerializer):
@@ -85,18 +104,27 @@ class EpisodeSerializer(serializers.ModelSerializer):
             "release_date", "video_url","duration"
         ]
 
+class RatingNestedSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = ["id", "user", "score", "comment", "created_at"]
+
+
 class MovieSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True, read_only=True)
     videos = VideoSourceSerializer(many=True, read_only=True)
     episodes = EpisodeSerializer(many=True, read_only=True)
     duration = serializers.SerializerMethodField()
+    ratings = RatingNestedSerializer(many=True, read_only=True)
 
     class Meta:
         model = Movie
         fields = [
             "id", "title", "slug", "description", "type", "release_year",
             "poster", "rating_avg", "rating_count", "genres",
-            "videos", "episodes", "duration"
+            "videos", "episodes", "duration","ratings",
         ]
 
     def get_duration(self, obj):
@@ -121,23 +149,12 @@ class RatingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rating
-        fields = ["id", "user", "movie_id", "score", "created_at"]
+        fields = ["id", "user", "movie_id", "score", 'comment', "created_at"]
 
     def validate_score(self, value):
         if not (1 <= value <= 5):
             raise serializers.ValidationError("Reyting faqat 1 dan 5 gacha bo‘lishi kerak.")
         return value
-
-class ReviewSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    movie_id = serializers.PrimaryKeyRelatedField(
-        source="movie", queryset=Movie.objects.all(), write_only=True
-    )
-
-    class Meta:
-        model = Review
-        fields = ["id", "user", "movie_id", "body", "created_at"]
-
 
 class BookmarkSerializer(serializers.ModelSerializer):
     movie = MovieSerializer(read_only=True)
@@ -162,4 +179,20 @@ class SendOTPSerializer(serializers.Serializer):
 class VerifyOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.IntegerField()
+    first_name = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True, min_length=6)
+    confirm_password = serializers.CharField(write_only=True, min_length=6)
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({'confirm_password': 'Parollar mos emas!'})
+        return attrs
+
+class RequestPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ConfirmPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=6)
