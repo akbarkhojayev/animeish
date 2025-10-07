@@ -2,6 +2,8 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
+
 from main.models import *
 from main.serializers import *
 from main.models import User as CustomUser, Movie, Bookmark
@@ -65,9 +67,7 @@ class EpisodeListView(generics.ListAPIView):
 class RatingListCreateView(generics.ListCreateAPIView):
     serializer_class = RatingSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Rating.objects.filter(user=self.request.user)
+    queryset = Rating.objects.all()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -89,7 +89,7 @@ class RatingDeleteView(generics.DestroyAPIView):
 class BannerListView(generics.ListAPIView):
     queryset = Banner.objects.all()
     serializer_class = BannerSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 class BookmarkListCreateView(generics.ListCreateAPIView):
     queryset = Bookmark.objects.all()
@@ -102,6 +102,13 @@ class BookmarkListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class BookmarkDelete(generics.DestroyAPIView):
+    queryset = Bookmark.objects.all()
+    serializer_class = BookmarkSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Bookmark.objects.filter(user=self.request.user)
 
 def dashboard_callback(request, context):
     total_users = CustomUser.objects.count()
@@ -277,3 +284,11 @@ class ConfirmPasswordResetView(GenericAPIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }, status=status.HTTP_200_OK)
+
+class NotificationListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        notifications = request.user.notifications.all()
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data)

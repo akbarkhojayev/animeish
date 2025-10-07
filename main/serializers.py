@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from main.models import User, Genre, Movie, Episode, VideoSource, Rating, Bookmark, Banner
+from main.models import *
 from django.db import models
 
 class UserProgressSerializer(serializers.ModelSerializer):
@@ -142,14 +142,14 @@ class MovieSerializer(serializers.ModelSerializer):
 
 
 class RatingSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+    user_first_name = serializers.CharField(source="user.first_name", read_only=True)
     movie_id = serializers.PrimaryKeyRelatedField(
         source="movie", queryset=Movie.objects.all(), write_only=True
     )
 
     class Meta:
         model = Rating
-        fields = ["id", "user", "movie_id", "score", 'comment', "created_at"]
+        fields = ["id", "user",'user_first_name',"movie_id", "score", 'comment', "created_at"]
 
     def validate_score(self, value):
         if not (1 <= value <= 5):
@@ -196,3 +196,11 @@ class ConfirmPasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.CharField(max_length=6)
     new_password = serializers.CharField(write_only=True, min_length=6)
+
+class NotificationSerializer(serializers.ModelSerializer):
+    movie_title = serializers.CharField(source="movie.title", read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = ["id", "message", "movie_title", "is_read", "created_at"]
+

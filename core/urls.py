@@ -44,6 +44,7 @@ urlpatterns = [
     path("ratings/", RatingListCreateView.as_view(), name="rating-list"),
     path('ratings/<int:pk>/update/', RatingUpdateView.as_view(), name='rating-update'),
     path('ratings/<int:pk>/delete/', RatingDeleteView.as_view(), name='rating-delete'),
+    path('notification/',NotificationListView.as_view(), name='notification-list'),
     path("bookmarks/", BookmarkListCreateView.as_view(), name="bookmark-list"),
     path("banners/", BannerListView.as_view(), name="banner-list"),
 ]
