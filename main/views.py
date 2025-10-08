@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.views import APIView
-
 from main.models import *
 from main.serializers import *
 from main.models import User as CustomUser, Movie, Bookmark
@@ -42,19 +41,19 @@ class GenreListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
 class MovieListView(generics.ListAPIView):
-    queryset = Movie.objects.all().prefetch_related("genres", "videos", "episodes")
+    queryset = Movie.objects.all().prefetch_related("genres", "episodes")
     serializer_class = MovieSerializer
     permission_classes = [AllowAny]
 
 class MovieDetailView(generics.RetrieveAPIView):
-    queryset = Movie.objects.all().prefetch_related("genres", "videos", "episodes")
+    queryset = Movie.objects.all().prefetch_related("genres", "episodes")
     serializer_class = MovieSerializer
     permission_classes = [AllowAny]
 
-class VideoSourceListView(generics.ListAPIView):
-    queryset = VideoSource.objects.all()
-    serializer_class = VideoSourceSerializer
-    permission_classes = [IsAuthenticated]
+# class VideoSourceListView(generics.ListAPIView):
+#     queryset = VideoSource.objects.all()
+#     serializer_class = VideoSourceSerializer
+#     permission_classes = [IsAuthenticated]
 
 class EpisodeListView(generics.ListAPIView):
     serializer_class = EpisodeSerializer
@@ -66,11 +65,19 @@ class EpisodeListView(generics.ListAPIView):
 
 class RatingListCreateView(generics.ListCreateAPIView):
     serializer_class = RatingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = Rating.objects.all()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+class RatingDetailView(generics.ListAPIView):
+    serializer_class = RatingSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Rating.objects.all()
+
+    def get_queryset(self):
+        return Rating.objects.filter(user=self.request.user)
 
 class RatingUpdateView(generics.UpdateAPIView):
     serializer_class = RatingSerializer
@@ -92,23 +99,29 @@ class BannerListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
 class BookmarkListCreateView(generics.ListCreateAPIView):
-    queryset = Bookmark.objects.all()
     serializer_class = BookmarkSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Bookmark.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_authenticated:
+            return Bookmark.objects.filter(user=user)
+        return Bookmark.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-class BookmarkDelete(generics.DestroyAPIView):
-    queryset = Bookmark.objects.all()
+
+class BookmarkDelete(generics.RetrieveDestroyAPIView):
     serializer_class = BookmarkSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Bookmark.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_authenticated:
+            return Bookmark.objects.filter(user=user)
+        return Bookmark.objects.none()
+
 
 def dashboard_callback(request, context):
     total_users = CustomUser.objects.count()
@@ -151,7 +164,6 @@ def dashboard_callback(request, context):
 
 OTP_STORE = {}
 
-
 class SendOTPView(GenericAPIView):
     serializer_class = SendOTPSerializer
     permission_classes = [AllowAny]
@@ -170,9 +182,7 @@ class SendOTPView(GenericAPIView):
             from_email="noreply@moviesite.com",
             recipient_list=[email],
         )
-
         return Response({"message": "Tasdiqlash kodi emailga yuborildi!"}, status=status.HTTP_200_OK)
-
 
 class VerifyOTPView(GenericAPIView):
     serializer_class = VerifyOTPSerializer
@@ -202,11 +212,9 @@ class VerifyOTPView(GenericAPIView):
                 password=make_password(password),
             )
         else:
-            # Mavjud foydalanuvchining parolini tekshiramiz
             if not check_password(password, user.password):
                 return Response({"error": "Parol noto‘g‘ri"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Token generatsiya
         refresh = RefreshToken.for_user(user)
 
         return Response({
@@ -220,11 +228,8 @@ class VerifyOTPView(GenericAPIView):
             "access": str(refresh.access_token),
         }, status=status.HTTP_200_OK)
 
-
 class RequestPasswordResetView(GenericAPIView):
-    """
-    Email orqali parolni tiklash kodi yuborish
-    """
+
     permission_classes = [AllowAny]
     serializer_class = RequestPasswordResetSerializer
 
@@ -252,9 +257,7 @@ class RequestPasswordResetView(GenericAPIView):
 
 
 class ConfirmPasswordResetView(GenericAPIView):
-    """
-    Kodni tasdiqlab yangi parolni o‘rnatish + token qaytarish
-    """
+
     permission_classes = [AllowAny]
     serializer_class = ConfirmPasswordResetSerializer
 
@@ -292,3 +295,23 @@ class NotificationListView(APIView):
         notifications = request.user.notifications.all()
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data)
+
+class NotificationMarkAsReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            notif = Notification.objects.get(pk=pk, user=request.user)
+        except Notification.DoesNotExist:
+            return Response({"detail": "Notification not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        notif.is_read = True
+        notif.save()
+        return Response({"detail": "Notification marked as read."}, status=status.HTTP_200_OK)
+
+class NotificationMarkAllAsReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return Response({"detail": "All notifications marked as read."}, status=status.HTTP_200_OK)

@@ -40,12 +40,17 @@ urlpatterns = [
     path("users/me/", UserUpdateView.as_view(), name="user-update"),
     path("genres/", GenreListView.as_view(), name="genre-list"),
     path("movies/", MovieListView.as_view(), name="movie-list"),
-    path("videos/", VideoSourceListView.as_view(), name="video-list"),
+    # path("videos/", VideoSourceListView.as_view(), name="video-list"),
     path("ratings/", RatingListCreateView.as_view(), name="rating-list"),
+
     path('ratings/<int:pk>/update/', RatingUpdateView.as_view(), name='rating-update'),
+    path('ratings/my/', RatingDetailView.as_view(), name='rating'),
     path('ratings/<int:pk>/delete/', RatingDeleteView.as_view(), name='rating-delete'),
     path('notification/',NotificationListView.as_view(), name='notification-list'),
+    path('notification/<int:pk>/read/',NotificationMarkAsReadView.as_view(), name='notification-list'),
+    path('notification/all/',NotificationMarkAllAsReadView.as_view(), name='notification-list'),
     path("bookmarks/", BookmarkListCreateView.as_view(), name="bookmark-list"),
+    path("bookmark/<int:pk>/", BookmarkDelete.as_view(), name="bookmark-delete"),
     path("banners/", BannerListView.as_view(), name="banner-list"),
 ]
 

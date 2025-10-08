@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Animeish Admin - {{ title }}{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">Animeish Admin</a></div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block footer %}
+<div id="footer" class="text-center py-3 mt-auto" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
+    <div class="container-fluid">
+        <p class="mb-0 text-muted">&copy; 2024 Animeish. Barcha huquqlar himoyalangan.</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Avg
 from django.utils.text import slugify
 
 class User(AbstractUser):
@@ -39,7 +40,6 @@ class Movie(models.Model):
     genres = models.ManyToManyField(Genre, related_name='movies', blank=True)
     rating_avg = models.FloatField(default=0.0)
     rating_count = models.PositiveIntegerField(default=0)
-    duration = models.DurationField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -52,6 +52,11 @@ class Movie(models.Model):
 
     def __str__(self):
         return self.title
+
+    def average_rating(self):
+        avg = self.ratings.aggregate(Avg('score'))['score__avg']
+        return avg if avg else 0
+
 
 class Banner(models.Model):
     photo = models.ImageField(upload_to='banners/', blank=True, null=True)
@@ -71,6 +76,7 @@ class Episode(models.Model):
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
+    quality = models.CharField(max_length=50, blank=True)
     release_date = models.DateField(blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
 
@@ -81,23 +87,21 @@ class Episode(models.Model):
     def __str__(self):
         return f"{self.movie.title} S{self.season}E{self.episode_number}"
 
-class VideoSource(models.Model):
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='videos')
-    url = models.URLField()
-    quality = models.CharField(max_length=50, blank=True)
-
-    def __str__(self):
-        return f"{self.movie.title} - {self.quality}"
-
 class Rating(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='ratings')
     score = models.PositiveSmallIntegerField()
     comment = models.TextField(blank=True, null=True)
+    is_comment = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'movie')
+
+    def save(self, *args, **kwargs):
+        self.is_comment = bool(self.comment and self.comment.strip())
+        super().save(*args, **kwargs)
+
 
 
 class Bookmark(models.Model):

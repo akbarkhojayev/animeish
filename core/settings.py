@@ -31,14 +31,14 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'unfold',
+    'jazzmin',
+    "crispy_forms",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -81,6 +81,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.dashboard.dashboard_context',  # Dashboard context processor
             ],
         },
     },
@@ -169,9 +170,120 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 
-UNFOLD = {
-    "DASHBOARD_CALLBACK": "main.views.dashboard_callback",
+JAZZMIN_SETTINGS = {
+    "site_title": "Animeish Admin",
+    "site_header": "Animeish",
+    "site_brand": "Animeish",
+    "site_logo": "logo.jpg",
+    "login_logo": "logo.jpg",
+    "login_logo_dark": "logo.jpg",
+    "site_logo_classes": "img-circle",
+    "site_icon": None,
+    "welcome_sign": "Welcome to Animeish Admin",
+    "copyright": "Animeish",
+    "search_model": ["main.Movie", "main.Genre", "main.Episode"],
+    "user_avatar": "logo.jpg",
 
+    # Top Menu
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"model": "main.Movie"},
+    ],
+
+    # Side Menu
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "order_with_respect_to": ["main", "auth"],
+
+    # Custom icons
+    "icons": {
+        "main.Movie": "fas fa-film",
+        "main.Genre": "fas fa-tag",
+        "main.Episode": "fas fa-play-circle",
+        "main.Banner": "fas fa-image",
+        "main.Rating": "fas fa-star",
+        "main.Bookmark": "fas fa-bookmark",
+        "main.UserEpisodeProgress": "fas fa-clock",
+        "main.Notification": "fas fa-bell",
+        "auth.User": "fas fa-users-cog",
+        "auth.Group": "fas fa-users",
+    },
+
+    # Custom colors
+    "primary": "#007bff",
+    "secondary": "#6c757d",
+    "accent": "#ffc107",
+    "success": "#28a745",
+    "info": "#17a2b8",
+    "warning": "#ffc107",
+    "danger": "#dc3545",
+
+    # Dark mode
+    "dark_mode_theme": None,
+
+    # Related Modal
+    "related_modal_active": False,
+
+    # Custom CSS for better footer positioning
+    "custom_css": """
+        #footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        body {
+            padding-bottom: 60px; /* Space for fixed footer */
+        }
+
+        .min-vh-100 {
+            min-height: 100vh !important;
+        }
+    """,
+    "custom_js": None,
+    "use_google_fonts_cdn": True,
+    # Dashboard callback - bu Jazzmin uchun maxsus funksiya
+    "dashboard_callback": "main.dashboard.dashboard_callback",
+
+    # Change view
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "footer_fixed": True,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+    "navbar_small_text": False,
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    },
+    "actions_sticky_top": False
 }
 
 # Internationalization
@@ -213,3 +325,22 @@ DEFAULT_FROM_EMAIL = 'Aniki  <akbarkhojayev@gmail.com>'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'main.User'
+
+
+import os
+
+BUNNY_STREAM_LIBRARY_ID = "506729"  # Video Library ID
+BUNNY_STREAM_API_KEY = "3cabea06-3957-4759-80bae3dd0901-79aa-4913"  # API Key
+BUNNY_STREAM_CDN_HOSTNAME = "vz-6a963c49-352.b-cdn.net"
+BUNNY_STREAM_UPLOAD_URL = f"https://video.bunnycdn.com/library/{BUNNY_STREAM_LIBRARY_ID}/videos"
+
+BUNNY_BASE_URL = "https://video.bunnycdn.com/library"
+BUNNY_API_KEY = BUNNY_STREAM_API_KEY
+
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap4']
+
+# Vaqtinchalik Celery konfiguratsiyasini o'chirish (Redis o'rnatilmaguncha)
+# CELERY_BROKER_URL = "redis://localhost:6379/0"
+# CELERY_RESULT_BACKEND = "redis://localhost:6379/0"

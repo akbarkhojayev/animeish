@@ -91,11 +91,6 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ["id", "name", "slug"]
 
-class VideoSourceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = VideoSource
-        fields = ["id", "url", "quality"]
-
 class EpisodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Episode
@@ -109,37 +104,23 @@ class RatingNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rating
-        fields = ["id", "user", "score", "comment", "created_at"]
+        fields = ["id", "user", "score", "comment","is_comment","created_at"]
 
 
 class MovieSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True, read_only=True)
-    videos = VideoSourceSerializer(many=True, read_only=True)
     episodes = EpisodeSerializer(many=True, read_only=True)
-    duration = serializers.SerializerMethodField()
     ratings = RatingNestedSerializer(many=True, read_only=True)
+    rating_avg = serializers.FloatField(read_only=True)
+    rating_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Movie
         fields = [
             "id", "title", "slug", "description", "type", "release_year",
             "poster", "rating_avg", "rating_count", "genres",
-            "videos", "episodes", "duration","ratings",
+            "episodes", "ratings",
         ]
-
-    def get_duration(self, obj):
-
-        if obj.type == 'movie':
-            return obj.duration
-
-        elif obj.type == 'series':
-            from datetime import timedelta
-            total = timedelta()
-            for ep in obj.episodes.all():
-                if ep.duration:
-                    total += ep.duration
-            return total
-
 
 class RatingSerializer(serializers.ModelSerializer):
     user_first_name = serializers.CharField(source="user.first_name", read_only=True)
@@ -149,7 +130,7 @@ class RatingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rating
-        fields = ["id", "user",'user_first_name',"movie_id", "score", 'comment', "created_at"]
+        fields = ["id", "user",'user_first_name',"movie_id", "score", 'comment', "is_comment","created_at"]
 
     def validate_score(self, value):
         if not (1 <= value <= 5):
