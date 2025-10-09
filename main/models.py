@@ -102,8 +102,6 @@ class Rating(models.Model):
         self.is_comment = bool(self.comment and self.comment.strip())
         super().save(*args, **kwargs)
 
-
-
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='bookmarks')

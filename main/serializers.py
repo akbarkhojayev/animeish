@@ -184,4 +184,3 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ["id", "message", "movie_title", "is_read", "created_at"]
-

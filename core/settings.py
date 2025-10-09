@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -26,7 +25,6 @@ SECRET_KEY = 'django-insecure-nufk-6wtk^_!kaq26h&d$!%)7-xf)#@8rczi1=z))#7tn)b*lr
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-
 
 # Application definition
 
@@ -91,8 +89,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 CORS_ALLOW_ALL_ORIGINS = True
 SITE_ID = 1
 
-
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -105,21 +101,18 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-
-
 SWAGGER_SETTINGS = {
-  'SECURITY_DEFINITIONS': {
-     'Basic': {
-           'type': 'basic'
-     },
-     'Bearer': {
-           'type': 'apiKey',
-           'name': 'Authorization',
-           'in': 'header'
-     }
-  }
+    'SECURITY_DEFINITIONS': {
+        'Basic': {
+            'type': 'basic'
+        },
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
 }
-
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -130,7 +123,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -153,10 +145,10 @@ AUTH_PASSWORD_VALIDATORS = [
 from datetime import timedelta
 
 SIMPLE_JWT = {
-   "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
-   "REFRESH_TOKEN_LIFETIME": timedelta(days=180),
-   "ROTATE_REFRESH_TOKENS": True,
-   "BLACKLIST_AFTER_ROTATION": True,
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=180),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
 }
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -169,20 +161,19 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-
 JAZZMIN_SETTINGS = {
-    "site_title": "Animeish Admin",
-    "site_header": "Animeish",
-    "site_brand": "Animeish",
-    "site_logo": "logo.jpg",
-    "login_logo": "logo.jpg",
-    "login_logo_dark": "logo.jpg",
+    "site_title": "Aniki Admin",
+    "site_header": "Aniki",
+    "site_brand": "Aniki",
+    "site_logo": "/logo/logo.jpg",
+    "login_logo": "/logo/logo.jpg",
+    "login_logo_dark": None,
     "site_logo_classes": "img-circle",
     "site_icon": None,
     "welcome_sign": "Welcome to Animeish Admin",
     "copyright": "Animeish",
     "search_model": ["main.Movie", "main.Genre", "main.Episode"],
-    "user_avatar": "logo.jpg",
+    "user_avatar": None,
 
     # Top Menu
     "topmenu_links": [
@@ -190,14 +181,12 @@ JAZZMIN_SETTINGS = {
         {"model": "main.Movie"},
     ],
 
-    # Side Menu
     "show_sidebar": True,
     "navigation_expanded": True,
     "hide_apps": [],
     "hide_models": [],
     "order_with_respect_to": ["main", "auth"],
 
-    # Custom icons
     "icons": {
         "main.Movie": "fas fa-film",
         "main.Genre": "fas fa-tag",
@@ -211,7 +200,6 @@ JAZZMIN_SETTINGS = {
         "auth.Group": "fas fa-users",
     },
 
-    # Custom colors
     "primary": "#007bff",
     "secondary": "#6c757d",
     "accent": "#ffc107",
@@ -220,36 +208,13 @@ JAZZMIN_SETTINGS = {
     "warning": "#ffc107",
     "danger": "#dc3545",
 
-    # Dark mode
     "dark_mode_theme": None,
 
-    # Related Modal
     "related_modal_active": False,
-
-    # Custom CSS for better footer positioning
-    "custom_css": """
-        #footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-
-        body {
-            padding-bottom: 60px; /* Space for fixed footer */
-        }
-
-        .min-vh-100 {
-            min-height: 100vh !important;
-        }
-    """,
+    "custom_css": "/css/custom_admin.css",
     "custom_js": None,
     "use_google_fonts_cdn": True,
-    # Dashboard callback - bu Jazzmin uchun maxsus funksiya
     "dashboard_callback": "main.dashboard.dashboard_callback",
-
-    # Change view
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
 }
@@ -294,8 +259,6 @@ TIME_ZONE = 'Asia/Tashkent'  # siz uchun mosroq
 USE_I18N = True
 USE_TZ = True
 
-
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -308,7 +271,6 @@ else:
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -326,7 +288,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'main.User'
 
-
 import os
 
 BUNNY_STREAM_LIBRARY_ID = "506729"  # Video Library ID
@@ -336,7 +297,6 @@ BUNNY_STREAM_UPLOAD_URL = f"https://video.bunnycdn.com/library/{BUNNY_STREAM_LIB
 
 BUNNY_BASE_URL = "https://video.bunnycdn.com/library"
 BUNNY_API_KEY = BUNNY_STREAM_API_KEY
-
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap4']
