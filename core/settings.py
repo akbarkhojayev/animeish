@@ -290,13 +290,27 @@ AUTH_USER_MODEL = 'main.User'
 
 import os
 
-BUNNY_STREAM_LIBRARY_ID = "506729"  # Video Library ID
-BUNNY_STREAM_API_KEY = "3cabea06-3957-4759-80bae3dd0901-79aa-4913"  # API Key
-BUNNY_STREAM_CDN_HOSTNAME = "vz-6a963c49-352.b-cdn.net"
-BUNNY_STREAM_UPLOAD_URL = f"https://video.bunnycdn.com/library/{BUNNY_STREAM_LIBRARY_ID}/videos"
+# BUNNY_STREAM_LIBRARY_ID = "506729"  # Video Library ID
+# BUNNY_STREAM_API_KEY = "3cabea06-3957-4759-80bae3dd0901-79aa-4913"  # API Key
+# BUNNY_STREAM_CDN_HOSTNAME = "vz-6a963c49-352.b-cdn.net"
+# BUNNY_STREAM_UPLOAD_URL = f"https://video.bunnycdn.com/library/{BUNNY_STREAM_LIBRARY_ID}/videos"
+#
+# BUNNY_BASE_URL = "https://video.bunnycdn.com/library"
+# BUNNY_API_KEY = BUNNY_STREAM_API_KEY
 
-BUNNY_BASE_URL = "https://video.bunnycdn.com/library"
-BUNNY_API_KEY = BUNNY_STREAM_API_KEY
+
+# Bunny Storage konfiguratsiyasi
+# ⚠️ BUNNY_STORAGE_ZONE va BUNNY_API_KEY ni Bunny Dashboard dan oling
+# 1. Bunny.net ga kiring
+# 2. Storage > New Storage Zone yaratish
+# 3. Storage Zone nomi va API key ni quyidagi formatda kiriting
+
+BUNNY_STORAGE_ZONE = "anikimedia"  # Sizning storage zone nomi
+BUNNY_API_KEY = "bdf5b4ba-f6c1-4757-830a1703372a-cd2b-417c"  # Bunny Storage API key (Storage Zone > API dan oling)
+BUNNY_STORAGE_URL = f"https://storage.bunnycdn.com/{BUNNY_STORAGE_ZONE}/"
+BUNNY_PULL_ZONE_URL = "https://anikimedia.b-cdn.net/"  # Pull Zone URL
+
+
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap4']

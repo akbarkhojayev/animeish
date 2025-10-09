@@ -101,17 +101,17 @@ class EpisodeSerializer(serializers.ModelSerializer):
 
 class RatingNestedSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
-
+    first_name = serializers.CharField(source="user.first_name", read_only=True)
     class Meta:
         model = Rating
-        fields = ["id", "user", "score", "comment","is_comment","created_at"]
+        fields = ["id", "user", "first_name","score", "comment","is_comment","created_at"]
 
 
 class MovieSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True, read_only=True)
     episodes = EpisodeSerializer(many=True, read_only=True)
     ratings = RatingNestedSerializer(many=True, read_only=True)
-    rating_avg = serializers.FloatField(read_only=True)
+    rating_avg = serializers.SerializerMethodField()
     rating_count = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -121,6 +121,11 @@ class MovieSerializer(serializers.ModelSerializer):
             "poster", "rating_avg", "rating_count", "genres",
             "episodes", "ratings",
         ]
+
+    def get_rating_avg(self, obj):
+        # .1f formatda yaxlitlab float sifatida qaytaradi
+        return float(format(obj.rating_avg or 0, ".1f"))
+
 
 class RatingSerializer(serializers.ModelSerializer):
     user_first_name = serializers.CharField(source="user.first_name", read_only=True)

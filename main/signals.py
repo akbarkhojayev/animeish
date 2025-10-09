@@ -22,6 +22,6 @@ def update_movie_rating(sender, instance, **kwargs):
         avg_score=Avg('score'),
         count=Count('id')
     )
-    movie.rating_avg = agg['avg_score'] or 0
+    movie.rating_avg = round(agg['avg_score'] or 0, 1)  # 1 xonali songa yaxlitlash
     movie.rating_count = agg['count'] or 0
     movie.save()

@@ -2,149 +2,150 @@
 {% load static %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <!-- Statistika kartochkalari -->
-        <div class="col-md-3 mb-4">
-            <div class="card bg-primary text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title">{{ total_movies }}</h5>
-                            <p class="card-text">Jami Filmlar</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-film fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card bg-success text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title">{{ total_users }}</h5>
-                            <p class="card-text">Jami Foydalanuvchilar</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-users fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card bg-info text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title">{{ total_episodes }}</h5>
-                            <p class="card-text">Jami Epizodlar</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-play-circle fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card bg-warning text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title">{{ avg_rating }}/5</h5>
-                            <p class="card-text">O'rtacha Reyting</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-star fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Eng ko'p reytingga ega filmlar -->
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-trophy me-2"></i>Eng ko'p reytingga ega filmlar
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if top_movies %}
-                    <div class="list-group list-group-flush">
-                        {% for movie in top_movies %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Statistika kartochkalari -->
+            <div class="col-md-3 mb-4">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
                             <div>
-                                <strong>{{ movie.title }}</strong>
-                                <br>
-                                <small class="text-muted">{{ movie.ratings_count }} ta reyting</small>
+                                <h5 class="card-title">{{ total_movies }}</h5>
+                                <p class="card-text">Jami Filmlar</p>
                             </div>
-                            <span class="badge bg-primary rounded-pill">{{ movie.rating_avg }}/5</span>
+                            <div class="align-self-center">
+                                <i class="fas fa-film fa-2x"></i>
+                            </div>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Hali reytinglar yo'q</p>
-                    {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- Eng ko'p janrlar -->
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-tags me-2"></i>Eng ko'p ishlatilgan janrlar
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if top_genres %}
-                    <div class="list-group list-group-flush">
-                        {% for genre in top_genres %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="col-md-3 mb-4">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
                             <div>
-                                <strong>{{ genre.name }}</strong>
+                                <h5 class="card-title">{{ total_users }}</h5>
+                                <p class="card-text">Jami Foydalanuvchilar</p>
                             </div>
-                            <span class="badge bg-secondary rounded-pill">{{ genre.movie_count }} ta film</span>
+                            <div class="align-self-center">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Hali janrlar yo'q</p>
-                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">{{ total_episodes }}</h5>
+                                <p class="card-text">Jami Epizodlar</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-play-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">{{ avg_rating }}/5</h5>
+                                <p class="card-text">O'rtacha Reyting</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-star fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- So'nggi qo'shilgan filmlar -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-clock me-2"></i>So'nggi 30 kun ichida qo'shilgan filmlar
-                    </h5>
+        <div class="row">
+            <!-- Eng ko'p reytingga ega filmlar -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-trophy me-2"></i>Eng ko'p reytingga ega filmlar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if top_movies %}
+                            <div class="list-group list-group-flush">
+                                {% for movie in top_movies %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ movie.title }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ movie.ratings_count }} ta reyting</small>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill">{{ movie.rating_avg|floatformat:1 }}/5</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">Hali reytinglar yo'q</p>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-plus-circle fa-3x text-success mb-3"></i>
-                                    <h3 class="text-success">{{ recent_movies }}</h3>
-                                    <p class="card-text text-muted">Yangi filmlar</p>
+            </div>
+
+            <!-- Eng ko'p janrlar -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tags me-2"></i>Eng ko'p ishlatilgan janrlar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if top_genres %}
+                            <div class="list-group list-group-flush">
+                                {% for genre in top_genres %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ genre.name }}</strong>
+                                        </div>
+                                        <span class="badge bg-secondary rounded-pill">{{ genre.movie_count }} ta film</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">Hali janrlar yo'q</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- So'nggi qo'shilgan filmlar -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clock me-2"></i>So'nggi 30 kun ichida qo'shilgan filmlar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-plus-circle fa-3x text-success mb-3"></i>
+                                        <h3 class="text-success">{{ recent_movies }}</h3>
+                                        <p class="card-text text-muted">Yangi filmlar</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -153,5 +154,4 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

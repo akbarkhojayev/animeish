@@ -6,7 +6,6 @@ from django import forms
 from .models import User as CustomUser, Genre, Movie, Rating, Bookmark, Episode, Banner, UserEpisodeProgress, Notification
 import tempfile
 
-
 # Social Accounts
 from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
 admin.site.unregister(SocialApp)
@@ -84,12 +83,17 @@ class EpisodeInlineForm(forms.ModelForm):
                     tmp.write(chunk)
                 tmp_path = tmp.name
 
+            # Asl fayl nomini olish
+            original_filename = file_obj.name if hasattr(file_obj, 'name') else None
+
             # Video yuklash funksiyasini chaqirish
             title = instance.title or f"{instance.movie.title} S{instance.season}E{instance.episode_number}"
 
             try:
-                from .tasks import upload_video
-                video_url = upload_video(tmp_path, title)
+                from .tasks import upload_to_bunny_storage
+                # Folder strukturasi: "videos" papkasiga joylash
+                folder = "videos"
+                video_url = upload_to_bunny_storage(tmp_path, filename=original_filename, folder=folder)
                 instance.video_url = video_url
                 print(f"✅ Video muvaffaqiyatli yuklandi: {video_url}")
             except Exception as e:

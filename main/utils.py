@@ -1,54 +1,65 @@
+# Bunny Storage konfiguratsiyasi
+from django.conf import settings
+import os
 import aiohttp
 import asyncio
-import aiofiles
-import os
+import uuid
+from pathlib import Path
 
-BUNNY_API_KEY = "3cabea06-3957-4759-80bae3dd0901-79aa-4913"
-BUNNY_LIBRARY_ID = "506729"
-BUNNY_BASE_URL = "https://video.bunnycdn.com/library"
+BUNNY_STORAGE_ZONE = getattr(settings, 'BUNNY_STORAGE_ZONE', 'anikimedia')
+BUNNY_API_KEY = getattr(settings, 'BUNNY_API_KEY', '')
+BUNNY_STORAGE_URL = f'https://storage.bunnycdn.com/{BUNNY_STORAGE_ZONE}/'
+BUNNY_PULL_ZONE_URL = getattr(settings, 'BUNNY_PULL_ZONE_URL', 'https://aniki.b-cdn.net/')
 
-async def create_video(session, title):
-    url = f"{BUNNY_BASE_URL}/{BUNNY_LIBRARY_ID}/videos"
-    headers = {
-        "Content-Type": "application/json",
-        "AccessKey": BUNNY_API_KEY,
-    }
-    data = {"title": title}
-    async with session.post(url, json=data, headers=headers) as res:
-        res_data = await res.json()
-        if res.status != 200 or "guid" not in res_data:
-            raise Exception(f"Video yaratishda xatolik: {res_data}")
-        return res_data["guid"]
+async def upload_file_to_bunny(file_path, filename=None, folder=None):
+    """
+    Bunny Storage ga fayl yuklaydi va CDN link qaytaradi
 
-async def upload_video(session, file_path, video_id, chunk_size=10*1024*1024):
-    upload_url = f"{BUNNY_BASE_URL}/{BUNNY_LIBRARY_ID}/videos/{video_id}"
-    headers = {
-        "AccessKey": BUNNY_API_KEY,
-        "Content-Type": "application/octet-stream",
-    }
+    Args:
+        file_path: Fayl joylashgan joy
+        filename: Fayl nomi (agar berilmasa, asl nomi ishlatiladi)
+        folder: CDN da joylashadigan papka nomi
+    """
+    if not BUNNY_API_KEY or BUNNY_API_KEY == 'your-actual-bunny-storage-api-key':
+        raise Exception("Bunny Storage API key not configured. Please set BUNNY_API_KEY in settings.py")
 
-    file_size = os.path.getsize(file_path)
-    uploaded = 0
+    try:
+        # Fayl nomini aniqlash
+        if not filename:
+            filename = Path(file_path).name
 
-    async with aiofiles.open(file_path, 'rb') as f:
-        while True:
-            chunk = await f.read(chunk_size)
-            if not chunk:
-                break
-            async with session.put(upload_url, data=chunk, headers=headers) as res:
-                if res.status not in [200, 201]:
-                    raise Exception(f"Video yuklashda xatolik: {await res.text()}")
-            uploaded += len(chunk)
-            print(f"Progress: {uploaded/file_size:.2%}")
+        # Agar folder berilgan bo'lsa, yo'l qurish
+        if folder:
+            folder = folder.strip('/')
+            full_filename = f"{folder}/{filename}"
+        else:
+            full_filename = filename
 
-async def main():
-    async with aiohttp.ClientSession() as session:
-        video_id = await create_video(session, "Test Video")
-        await upload_video(session, "my_video.mp4", video_id)
+        upload_url = f"{BUNNY_STORAGE_URL}{full_filename}"
 
-        # iframe link
-        iframe_link = f"https://iframe.mediadelivery.net/play/{BUNNY_LIBRARY_ID}/{video_id}"
-        print(f"Video iframe link: {iframe_link}")
+        headers = {
+            "AccessKey": BUNNY_API_KEY,
+        }
 
-if __name__ == "__main__":
-    asyncio.run(main())
+        async with aiohttp.ClientSession() as session:
+            print(f"Fayl yuklanmoqda: {full_filename}")
+
+            with open(file_path, 'rb') as f:
+                async with session.put(upload_url, data=f, headers=headers, timeout=300) as response:
+                    if response.status not in [201, 200]:
+                        error_text = await response.text()
+                        raise Exception(f"Upload xatolik: {error_text}")
+
+            # CDN link qaytarish
+            cdn_url = f"{BUNNY_PULL_ZONE_URL}{full_filename}"
+            print(f"✅ Fayl muvaffaqiyatli yuklandi: {cdn_url}")
+
+            return cdn_url
+
+    except Exception as e:
+        print(f"Upload xatolik: {str(e)}")
+        raise Exception(f"Fayl yuklanmadi: {str(e)}")
+
+# Sync versiya
+def upload_to_bunny_storage(file_path, filename=None, folder=None):
+    return asyncio.run(upload_file_to_bunny(file_path, filename, folder))
