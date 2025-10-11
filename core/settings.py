@@ -22,9 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-nufk-6wtk^_!kaq26h&d$!%)7-xf)#@8rczi1=z))#7tn)b*lr'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["16.16.149.231","api.aniki.uz"]
 
 # Application definition
 
@@ -156,29 +156,36 @@ SOCIALACCOUNT_PROVIDERS = {
         "APP": {
             "client_id": "1028453314689-t5o1lj54gd28g1c2sqah30du0udmscrq.apps.googleusercontent.com",
             "secret": "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",
-            "key": ""
         }
     }
 }
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Aniki Admin",
-    "site_header": "Aniki",
-    "site_brand": "Aniki",
-    "site_logo": "/logo/logo.jpg",
-    "login_logo": "/logo/logo.jpg",
+    "site_title": "AnimeIsh Admin",
+    "site_header": "AnimeIsh",
+    "site_brand": "AnimeIsh",
+    "site_logo": None,
+    "login_logo": None,
     "login_logo_dark": None,
     "site_logo_classes": "img-circle",
     "site_icon": None,
-    "welcome_sign": "Welcome to Animeish Admin",
-    "copyright": "Animeish",
-    "search_model": ["main.Movie", "main.Genre", "main.Episode"],
+    "welcome_sign": "AnimeIsh admin paneliga xush kelibsiz",
+    "copyright": "AnimeIsh",
+    "search_model": "main.Movie",
     "user_avatar": None,
 
-    # Top Menu
     "topmenu_links": [
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"model": "main.Movie"},
+
+        {"name": "Bosh sahifa",  "url": "admin:index", "permissions": ["auth.view_user"]},
+
+        {"model": "main.User"},
+
+        {"app": "main"},
+    ],
+
+    "usermenu_links": [
+
+        {"name": "Profilni ko'rish", "url": "admin:main_user_changelist", "new_window": True},
     ],
 
     "show_sidebar": True,
@@ -188,33 +195,29 @@ JAZZMIN_SETTINGS = {
     "order_with_respect_to": ["main", "auth"],
 
     "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "main.User": "fas fa-user",
+        "main.Genre": "fas fa-tags",
         "main.Movie": "fas fa-film",
-        "main.Genre": "fas fa-tag",
-        "main.Episode": "fas fa-play-circle",
         "main.Banner": "fas fa-image",
+        "main.Episode": "fas fa-play-circle",
         "main.Rating": "fas fa-star",
         "main.Bookmark": "fas fa-bookmark",
         "main.UserEpisodeProgress": "fas fa-clock",
         "main.Notification": "fas fa-bell",
-        "auth.User": "fas fa-users-cog",
-        "auth.Group": "fas fa-users",
     },
-
-    "primary": "#007bff",
-    "secondary": "#6c757d",
-    "accent": "#ffc107",
-    "success": "#28a745",
-    "info": "#17a2b8",
-    "warning": "#ffc107",
-    "danger": "#dc3545",
-
-    "dark_mode_theme": None,
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
 
     "related_modal_active": False,
-    "custom_css": "/css/custom_admin.css",
+
+    "custom_css": None,
     "custom_js": None,
     "use_google_fonts_cdn": True,
-    "dashboard_callback": "main.dashboard.dashboard_callback",
+    "show_ui_builder": False,
+
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
 }
@@ -254,7 +257,7 @@ JAZZMIN_UI_TWEAKS = {
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'uz'
 TIME_ZONE = 'Asia/Tashkent'  # siz uchun mosroq
 USE_I18N = True
 USE_TZ = True
@@ -262,15 +265,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+import os
 
-if DEBUG:
-    STATICFILES_DIRS = [BASE_DIR / 'static']
-else:
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = '/var/www/animeish/static/'
+MEDIA_ROOT = '/var/www/animeish/media/'
 
+STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -13,6 +13,9 @@ from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 import json, random
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import tempfile
 
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -315,3 +318,25 @@ class NotificationMarkAllAsReadView(APIView):
     def post(self, request):
         Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
         return Response({"detail": "All notifications marked as read."}, status=status.HTTP_200_OK)
+
+@csrf_exempt
+def upload_video(request):
+    if request.method == 'POST':
+        file_obj = request.FILES.get('file')
+        if not file_obj:
+            return JsonResponse({'error': 'Fayl topilmadi'}, status=400)
+
+        # Vaqtincha saqlash
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            for chunk in file_obj.chunks():
+                tmp.write(chunk)
+            tmp_path = tmp.name
+
+        try:
+            from .tasks import upload_to_bunny_storage
+            folder = "videos"
+            video_url = upload_to_bunny_storage(tmp_path, filename=file_obj.name, folder=folder)
+            return JsonResponse({'video_url': video_url})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Faqat POST ruxsat etiladi'}, status=405)

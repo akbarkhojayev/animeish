@@ -52,6 +52,7 @@ urlpatterns = [
     path("bookmarks/", BookmarkListCreateView.as_view(), name="bookmark-list"),
     path("bookmark/<int:pk>/", BookmarkDelete.as_view(), name="bookmark-delete"),
     path("banners/", BannerListView.as_view(), name="banner-list"),
+    path('upload-video/', upload_video, name='upload-video'),
 ]
 
 if settings.DEBUG:

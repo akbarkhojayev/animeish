@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <mask id="holeMask">
+      <rect x="0" y="0" width="1024" height="1024" fill="white"/>
+      <circle cx="512" cy="512" r="70" fill="black"/>
+    </mask>
+  </defs>
+  <g mask="url(#holeMask)">
+    <polygon points="512.00,852.00 405.93,618.07 172.00,512.00 405.93,405.93 512.00,172.00 618.07,405.93 852.00,512.00 618.07,618.07" fill="#60c0d8" stroke="#2d9fb6" stroke-width="2" stroke-linejoin="round"/>
+  </g>
+  <polygon points="512.00,852.00 405.93,618.07 172.00,512.00 405.93,405.93 512.00,172.00 618.07,405.93 852.00,512.00 618.07,618.07" fill="none" stroke="#2d9fb6" stroke-width="1" stroke-linejoin="round"/>
+  <circle cx="512" cy="512" r="70" fill="none" stroke="#2d9fb6" stroke-width="1"/>
+</svg>

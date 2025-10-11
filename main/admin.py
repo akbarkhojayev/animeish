@@ -5,6 +5,7 @@ from django.utils.html import format_html
 from django import forms
 from .models import User as CustomUser, Genre, Movie, Rating, Bookmark, Episode, Banner, UserEpisodeProgress, Notification
 import tempfile
+from django.utils.translation import gettext_lazy as _
 
 # Social Accounts
 from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
@@ -37,9 +38,9 @@ admin.site.unregister(Group)
 class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Shaxsiy ma\'lumotlar', {'fields': ('first_name', 'email', 'is_premium')}),
-        ('Faollik', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
-        ('Muhim sanalar', {'fields': ('last_login',)}),
+        (_('Shaxsiy ma\'lumotlar'), {'fields': ('first_name', 'email', 'is_premium')}),
+        (_('Faollik'), {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        (_('Muhim sanalar'), {'fields': ('last_login',)}),
     )
 
     add_fieldsets = (
@@ -66,45 +67,18 @@ class GenreAdmin(admin.ModelAdmin):
 # Episode Inline
 # ---------------------------
 class EpisodeInlineForm(forms.ModelForm):
-    file = forms.FileField(required=False, label="Video fayl")
+    file = forms.FileField(required=False, label=_("Video fayl"), help_text=_("Fayl tanlang, yuklanadi va URL avtomatik qo'shiladi"))
 
     class Meta:
         model = Episode
         fields = "__all__"
 
+    class Media:
+        js = ('js/upload_progress.js',)
+
     def save(self, commit=True):
         instance = super().save(commit=False)
-        file_obj = self.cleaned_data.get("file")
-
-        if file_obj:
-            # Faylni vaqtincha saqlash
-            with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                for chunk in file_obj.chunks():
-                    tmp.write(chunk)
-                tmp_path = tmp.name
-
-            # Asl fayl nomini olish
-            original_filename = file_obj.name if hasattr(file_obj, 'name') else None
-
-            # Video yuklash funksiyasini chaqirish
-            title = instance.title or f"{instance.movie.title} S{instance.season}E{instance.episode_number}"
-
-            try:
-                from .tasks import upload_to_bunny_storage
-                # Folder strukturasi: "videos" papkasiga joylash
-                folder = "videos"
-                video_url = upload_to_bunny_storage(tmp_path, filename=original_filename, folder=folder)
-                instance.video_url = video_url
-                print(f"✅ Video muvaffaqiyatli yuklandi: {video_url}")
-            except Exception as e:
-                # Agar xatolik yuz bersa, batafsil xabar ko'rsatish
-                import uuid
-                import traceback
-                task_id = str(uuid.uuid4())
-                error_msg = f"Upload xatolik: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
-                instance.video_url = f"❌ {error_msg} (Task ID: {task_id})"
-                print(f"❌ Video yuklanishda xatolik: {e}")
-
+        # File handling olib tashlandi, chunki AJAX da bajariladi
         if commit:
             instance.save()
         return instance
@@ -141,11 +115,8 @@ class MovieAdmin(admin.ModelAdmin):
                 obj.poster.url
             )
         return "❌"
-    poster_preview.short_description = "Poster"
+    poster_preview.short_description = _("Poster")
 
-# ---------------------------
-# Rating Admin
-# ---------------------------
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
     list_display = ("user", "movie", "score", "comment", "created_at")
@@ -170,7 +141,7 @@ class BannerAdmin(admin.ModelAdmin):
 
     def movie_title(self, obj):
         return obj.movie.title
-    movie_title.short_description = "Movie"
+    movie_title.short_description = _("Film sarlavhasi")
 
 # ---------------------------
 # UserEpisodeProgress Admin
@@ -193,8 +164,8 @@ class NotificationAdmin(admin.ModelAdmin):
 
     def mark_as_read(self, request, queryset):
         queryset.update(is_read=True)
-    mark_as_read.short_description = "Belgilangan xabarlarni o'qilgan deb belgilash"
+    mark_as_read.short_description = _("Belgilangan xabarlarni o'qilgan deb belgilash")
 
     def mark_as_unread(self, request, queryset):
         queryset.update(is_read=False)
-    mark_as_unread.short_description = "Belgilangan xabarlarni o'qilmagan deb belgilash"
+    mark_as_unread.short_description = _("Belgilangan xabarlarni o'qilmagan deb belgilash")
